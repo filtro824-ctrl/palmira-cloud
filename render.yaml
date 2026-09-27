@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
-    dockerCommand: sh -c "uv run src/agent.py start & exec uv run python bridge_server.py"
+    dockerCommand: sh -c "uv run src/agent.py start & exec uv run python servidor_ponte.py"
     healthCheckPath: /health
     envVars:
       - key: LIVEKIT_URL
