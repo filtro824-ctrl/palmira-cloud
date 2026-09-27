@@ -2,22 +2,10 @@ services:
   - type: web
     name: palmira-ui
     runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerCommand: uv run python bridge_server.py
-    healthCheckPath: /health
-    envVars:
-      - key: LIVEKIT_URL
-        sync: false
-      - key: LIVEKIT_API_KEY
-        sync: false
-      - key: LIVEKIT_API_SECRET
-        sync: false
-
-  - type: worker
-    name: palmira-agent
-    runtime: docker
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerCommand: uv run src/agent.py start
+    healthCheckPath: /health
     envVars:
       - key: LIVEKIT_URL
         sync: false
