@@ -86,7 +86,7 @@ room.on(RoomEvent.TrackUnsubscribed,(track)=>detachAudio(track));room.on(RoomEve
 room.on(RoomEvent.ParticipantConnected,(participant)=>{const s=participant.attributes?.['lk.agent.state'];if(s)setState(s);const e=participant.attributes?.['lk.agent.emotion'];if(e)setEmotion(e)});
 room.on(RoomEvent.Disconnected,()=>disconnectUI());
 await room.connect(data.server_url,data.participant_token);await room.localParticipant.setMicrophoneEnabled(true);app.classList.add('live');statusText.textContent='LIVE';statusText.classList.add('connected');micBtn.disabled=false;micBtn.classList.add('active');liveBtn.textContent='■ DISCONNECT';
-for(const p of room.remoteParticipants.values()){const s=p.attributes?.['lk.agent.state'];if(s)setState(s)}
+for(const p of room.remoteParticipants.values()){const s=p.attributes?.['lk.agent.state'];if(s)setState(s);const e=p.attributes?.['lk.agent.emotion'];if(e)setEmotion(e)}
 }catch(e){showError(e.message||String(e));liveBtn.disabled=false;liveBtn.textContent='● CONNECT PALMIRA'}}
 async function disconnectUI(){for(const el of audioEls.values())el.remove();audioEls.clear();app.classList.remove('live');statusText.textContent='OFFLINE';statusText.classList.remove('connected');setState('idle');micBtn.disabled=true;micBtn.classList.remove('active');liveBtn.disabled=false;liveBtn.textContent='● CONNECT PALMIRA'}
 async function disconnectPalmira(){if(room){await room.disconnect();room=null}else disconnectUI()}
