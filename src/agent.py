@@ -1,21 +1,15 @@
-import logging
-
-from dotenv import load_dotenv
 from livekit.agents import (
     Agent,
     AgentServer,
     AgentSession,
     JobContext,
+    RunContext,
     TurnHandlingOptions,
     cli,
+    function_tool,
     inference,
     room_io,
 )
-from livekit.agents.beta.tools import EndCallTool
-from livekit.plugins import (
-    ai_coustics,
-)
-
 logger = logging.getLogger("agent-Palmira")
 
 load_dotenv(".env.local")
