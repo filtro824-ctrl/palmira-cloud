@@ -38,8 +38,7 @@ function attachAudio(track,pub){const el=track.attach();el.autoplay=true;el.data
 function detachAudio(track){track.detach().forEach(el=>el.remove())}
 async function connectPalmira(){showError('');liveBtn.disabled=true;liveBtn.textContent='● CONNECTING';try{const r=await fetch('/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});if(!r.ok)throw new Error((await r.json()).error||'Falha ao obter token');const data=await r.json();room=new Room();
 room.on(RoomEvent.TrackSubscribed,(track,pub)=>{if(track.kind===Track.Kind.Audio)attachAudio(track,pub)});
-room.on(RoomEvent.TrackUnsubscribed,(track)=>detachAudio(track));
-room.on(RoomEvent.ParticipantAttributesChanged,(attrs,participant)=>{if(participant===room.remoteParticipants.values().next().value||participant.identity){const s=attrs['lk.agent.state'];if(s)setState(s)}});
+room.on(RoomEvent.TrackUnsubscribed,(track)=>detachAudio(track));room.on(RoomEvent.ParticipantAttributesChanged,(attrs,participant)=>{if(participant===room.remoteParticipants.values().next().value||participant.identity){const s=attrs['lk.agent.state'];if(s)setState(s);const e=attrs['lk.agent.emotion'];if(e)setEmotion(e)}});
 room.on(RoomEvent.ParticipantConnected,(participant)=>{const s=participant.attributes?.['lk.agent.state'];if(s)setState(s)});
 room.on(RoomEvent.Disconnected,()=>disconnectUI());
 await room.connect(data.server_url,data.participant_token);await room.localParticipant.setMicrophoneEnabled(true);app.classList.add('live');statusText.textContent='LIVE';statusText.classList.add('connected');micBtn.disabled=false;micBtn.classList.add('active');liveBtn.textContent='■ DISCONNECT';
