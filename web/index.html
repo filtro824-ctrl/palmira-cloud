@@ -36,72 +36,37 @@ function setEmotion(type){type=reactionEmojis[type]?type:'neutral';emotion.textC
 function addReaction(data){if(!app.classList.contains('live'))return;const emoji=data?.emoji||'✨',text=data?.text||'Reação';const el=document.createElement('div');el.className='comment';el.innerHTML=`<span>${emoji}</span> ${text}<small>agora</small>`;feed.prepend(el);const floating=document.createElement('div');floating.className='float-emoji';floating.textContent=emoji;floating.style.left=(20+Math.random()*65)+'%';floating.style.setProperty('--drift',(Math.random()*100-50)+'px');floatLayer.appendChild(floating);setTimeout(()=>floating.remove(),3300);while(feed.children.length>8)feed.lastElementChild.remove()}
 function attachAudio(track,pub){const el=track.attach();el.autoplay=true;el.dataset.sid=pub.trackSid;el.style.display='none';document.body.appendChild(el);audioEls.set(pub.trackSid,el)}
 function detachAudio(track){track.detach().forEach(el=>el.remove())}
-async function connectPalmira(){showError('');liveBtn.disabled=true;liveBtn.textContent='● CONNECTING';try{const data=await r.json();console.log('TOKEN:',data);if(!data.server_url||!data.participant_token)throw new Error('Token inválido: server_url ou participant_token não encontrado');room=new Room();
+async function connectPalmira(){showError('');liveBtn.disabled=true;liveBtn.textContent='● CONNECTING';try{const r=await fetch('/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});if(!r.ok)throw new Error((await r.json()).error||'Falha ao obter token');const data=await r.json();console.log('TOKEN:',data);if(!data.server_url||!data.participant_token)throw new Error('Token inválido: server_url ou participant_token não encontrado');room=new Room();
 room.on(RoomEvent.TrackSubscribed,(track,pub)=>{if(track.kind===Track.Kind.Audio)attachAudio(track,pub)});
-room.on(RoomEvent.TrackUnsubscribed,(track)=>detachAudio(track));room.on(RoomEvent.ParticipantAttributesChanged,(attrs,participant)=>{if(participant===room.remoteParticipants.values().next().value||participant.identity){const s=attrs['lk.agent.state'];if(s)setState(s);const e=attrs['lk.agent.emotion'];if(e)setEmotion(e)}});
+room.on(RoomEvent.TrackUnsubscribed,(track)=>detachAudio(track));
+room.on(RoomEvent.ParticipantAttributesChanged,(attrs,participant)=>{if(participant===room.remoteParticipants.values().next().value||participant.identity){const s=attrs['lk.agent.state'];if(s)setState(s);const e=attrs['lk.agent.emotion'];if(e)setEmotion(e)}});
 room.on(RoomEvent.ParticipantConnected,(participant)=>{const s=participant.attributes?.['lk.agent.state'];if(s)setState(s);const e=participant.attributes?.['lk.agent.emotion'];if(e)setEmotion(e)});
 room.on(RoomEvent.Disconnected,()=>disconnectUI());
-await room.connect(data.server_url,data.participant_token);await room.localParticipant.setMicrophoneEnabled(true);app.classList.add('live');statusText.textContent='LIVE';statusText.classList.add('connected');micBtn.disabled=false;micBtn.classList.add('active');liveBtn.textContent='■ DISCONNECT';
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PALMIRA — AI Live Agent</title>
-<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.22.3/dist/livekit-client.umd.min.js"></script>
-<style>
-:root{--cyan:#8dfcff;--cyan2:#2ac9e8;--blue:#1b78b7;--yellow:#ffd84d;--bg:#02070b;--panel:rgba(5,18,27,.78)}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:#eaffff}
-body{background:radial-gradient(circle at 50% 45%,rgba(18,112,151,.18),transparent 28%),linear-gradient(135deg,#010508,#03121a 48%,#02070b)}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.25;background-image:linear-gradient(rgba(89,220,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(89,220,255,.08) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(circle at center,black,transparent 78%)}
-.app{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}.topbar{position:absolute;top:22px;left:28px;right:28px;display:flex;align-items:center;justify-content:space-between;z-index:10;font-size:12px;letter-spacing:2px;text-transform:uppercase}.brand{font-weight:800;color:white}.brand span{color:var(--cyan)}.status{display:flex;gap:9px;align-items:center;color:#9bb4bc}.dot{width:8px;height:8px;border-radius:50%;background:#65757a;box-shadow:0 0 10px #65757a}.live .dot{background:#52ff9a;box-shadow:0 0 14px #52ff9a}.live .status-text{color:#8dffba}
-.core-wrap{position:relative;width:min(74vw,690px);height:min(74vw,690px);display:grid;place-items:center}.ring{position:absolute;border:1px solid rgba(141,252,255,.55);border-radius:50%;box-shadow:0 0 20px rgba(42,201,232,.12) inset,0 0 22px rgba(42,201,232,.1)}.r1{inset:1%;animation:spin 30s linear infinite}.r2{inset:8%;border-color:rgba(80,201,235,.5);animation:spin 22s linear infinite reverse}.r3{inset:17%;border-color:rgba(141,252,255,.7);border-width:2px;animation:spin 18s linear infinite}.r4{inset:25%;border-color:rgba(141,252,255,.25);animation:pulse 3s ease-in-out infinite}.tick-ring{position:absolute;inset:3%;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(141,252,255,.7) 0 1deg,transparent 1deg 7deg);mask:radial-gradient(circle,transparent 0 47%,#000 48% 50%,transparent 51%);animation:spin 35s linear infinite}.arc{position:absolute;inset:12%;border-radius:50%;border:10px solid transparent;border-top-color:rgba(90,224,255,.65);border-right-color:rgba(90,224,255,.12);transform:rotate(-35deg);filter:drop-shadow(0 0 8px var(--cyan));animation:spin 14s linear infinite}.yellow-arc{position:absolute;inset:25%;border-radius:50%;border:5px solid transparent;border-left-color:var(--yellow);border-bottom-color:rgba(255,216,77,.15);transform:rotate(20deg);filter:drop-shadow(0 0 7px var(--yellow));animation:spin 8s linear infinite reverse}.core{width:44%;height:44%;border-radius:50%;position:relative;display:grid;place-items:center;background:radial-gradient(circle at 45% 38%,#122c38,#030b10 68%);border:2px solid rgba(141,252,255,.8);box-shadow:0 0 25px rgba(91,231,255,.35),0 0 80px rgba(21,151,191,.18),inset 0 0 35px rgba(76,215,245,.15);overflow:hidden}.core:before{content:"";position:absolute;inset:8%;border:1px solid rgba(141,252,255,.28);border-radius:50%}.core:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 49%,rgba(141,252,255,.08) 50%,transparent 51%);animation:scan 2.6s linear infinite}.identity{text-align:center;z-index:2}.letter{font-size:clamp(64px,10vw,108px);font-weight:900;letter-spacing:4px;line-height:.9;color:#eaffff;text-shadow:0 0 8px white,0 0 24px var(--cyan)}.name{font-size:clamp(18px,2.4vw,28px);letter-spacing:8px;font-weight:700;margin-top:15px;color:var(--cyan)}.emotion{margin-top:12px;font-size:31px;min-height:38px;filter:drop-shadow(0 0 9px rgba(141,252,255,.65))}.eq{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);display:flex;gap:3px;align-items:end;height:40px;z-index:3}.eq i{display:block;width:3px;height:8px;background:var(--cyan);box-shadow:0 0 7px var(--cyan);opacity:.75}.listening .eq i,.speaking .eq i{animation:eq .7s ease-in-out infinite alternate}.listening .eq i:nth-child(2n),.speaking .eq i:nth-child(2n){animation-delay:.12s}.listening .eq i:nth-child(3n),.speaking .eq i:nth-child(3n){animation-delay:.25s}
-.side{position:absolute;top:50%;width:170px;transform:translateY(-50%);font-size:10px;letter-spacing:1.5px;color:#78a8b5}.side.left{left:28px}.side.right{right:28px;text-align:right}.metric{padding:10px 0;border-bottom:1px solid rgba(141,252,255,.1)}.metric b{display:block;color:#d8fbff;font-size:12px;margin-top:4px}.controls{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:20}button{border:1px solid rgba(141,252,255,.35);background:rgba(5,22,31,.82);color:#c9faff;border-radius:10px;padding:10px 15px;cursor:pointer;letter-spacing:1px;font-size:11px;box-shadow:0 0 15px rgba(42,201,232,.08);backdrop-filter:blur(8px)}button:hover{border-color:var(--cyan);box-shadow:0 0 18px rgba(42,201,232,.22)}button.liveBtn{border-color:#ff526c;color:#ff9bab}button.mic.active{border-color:var(--cyan);color:white}.live-panel{position:absolute;right:25px;bottom:25px;width:270px;z-index:15;display:none;background:rgba(2,10,15,.72);border:1px solid rgba(141,252,255,.2);border-radius:14px;padding:12px;backdrop-filter:blur(10px)}.live .live-panel{display:block}.live-head{display:flex;justify-content:space-between;font-size:10px;letter-spacing:2px;color:#86b7c2;margin-bottom:8px}.feed{height:150px;overflow:hidden;display:flex;flex-direction:column-reverse;gap:5px}.comment{font-size:12px;background:rgba(141,252,255,.05);border-left:2px solid var(--cyan);padding:6px 8px;border-radius:4px}.float-layer{position:absolute;inset:0;pointer-events:none;z-index:30;overflow:hidden}.float-emoji{position:absolute;bottom:24%;font-size:28px;animation:floatUp 3.2s ease-out forwards;filter:drop-shadow(0 0 8px rgba(141,252,255,.65))}.hidden-tip{display:none}.live .hidden-tip{display:block;position:absolute;left:30px;bottom:28px;color:#4e717c;font-size:9px;letter-spacing:1px}.error{position:absolute;left:50%;top:78%;transform:translateX(-50%);font-size:11px;color:#ff8c9b;text-align:center;max-width:80%;z-index:50}.connected{color:#8dffba!important}@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{transform:scale(1.025);opacity:.55}}@keyframes scan{to{transform:translateY(100%)}}@keyframes eq{to{height:30px}}@keyframes floatUp{0%{transform:translateY(0) scale(.7);opacity:0}15%{opacity:1}100%{transform:translateY(-280px) translateX(var(--drift)) scale(1.15);opacity:0}}@media(max-width:800px){.side{display:none}.core-wrap{width:94vw;height:94vw}.live-panel{width:235px;right:12px;bottom:72px}.topbar{left:15px;right:15px}.controls{bottom:14px;flex-wrap:wrap;justify-content:center}}
-</style>
-</head>
-<body>
-<div class="app" id="app">
-<div class="topbar"><div class="brand">PALMIRA <span>// AI AGENT</span></div><div class="status"><span class="dot"></span><span class="status-text" id="statusText">OFFLINE</span></div></div>
-<div class="core-wrap" id="coreWrap"><div class="tick-ring"></div><div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div><div class="ring r4"></div><div class="arc"></div><div class="yellow-arc"></div>
-<div class="side left"><div class="metric">AGENT<b>PALMIRA</b></div><div class="metric">ENGINE<b>STT → LLM → TTS</b></div><div class="metric">LINK<b>LIVEKIT</b></div></div><div class="side right"><div class="metric">STATE<b id="stateText">IDLE</b></div><div class="metric">VOICE<b id="voiceText">READY</b></div><div class="metric">REACTION<b id="reactionText">NEUTRAL</b></div></div>
-<div class="core"><div class="identity"><div class="letter">P</div><div class="name">PALMIRA</div><div class="emotion" id="emotion">◉</div></div><div class="eq" id="eq"></div></div></div>
-<div class="live-panel"><div class="live-head"><span>LIVE COMMENTS</span><span id="viewerCount">CONNECTED</span></div><div class="feed" id="feed"></div></div><div class="float-layer" id="floatLayer"></div><div class="hidden-tip">PALMIRA CONECTADA AO LIVEKIT • ÁUDIO EM TEMPO REAL</div><div class="error" id="error"></div>
-<div class="controls"><button class="liveBtn" id="liveBtn">● CONNECT PALMIRA</button><button class="mic" id="micBtn" disabled>🎙 MICROPHONE</button><button id="demoBtn">REACTION TEST</button></div>
-</div>
-<script>
-const { Room, RoomEvent, Track } = window.LivekitClient;
-const app=document.getElementById('app'), coreWrap=document.getElementById('coreWrap'), emotion=document.getElementById('emotion'), stateText=document.getElementById('stateText'), voiceText=document.getElementById('voiceText'), reactionText=document.getElementById('reactionText'), feed=document.getElementById('feed'), floatLayer=document.getElementById('floatLayer'), liveBtn=document.getElementById('liveBtn'), micBtn=document.getElementById('micBtn'), errorEl=document.getElementById('error'), statusText=document.getElementById('statusText');
-const reactionEmojis={neutral:'😐',happy:'😄',love:'❤️',laugh:'😂',surprised:'😮',sad:'😢'};
-const states={initializing:'THINKING',idle:'IDLE',listening:'LISTENING',thinking:'THINKING',speaking:'SPEAKING'};
-let room=null, audioEls=new Map();
-function showError(msg){errorEl.textContent=msg||''}
-function setState(state){state=states[state]?state:'idle';coreWrap.classList.remove('listening','speaking');if(state==='listening')coreWrap.classList.add('listening');if(state==='speaking')coreWrap.classList.add('speaking');stateText.textContent=states[state];voiceText.textContent=state==='speaking'?'SPEAKING':state==='listening'?'LISTENING':state==='thinking'?'PROCESSING':'READY'}
-function setEmotion(type){type=reactionEmojis[type]?type:'neutral';emotion.textContent=reactionEmojis[type];reactionText.textContent=type.toUpperCase()}
-function addReaction(data){if(!app.classList.contains('live'))return;const emoji=data?.emoji||'✨',text=data?.text||'Reação';const el=document.createElement('div');el.className='comment';el.innerHTML=`<span>${emoji}</span> ${text}<small>agora</small>`;feed.prepend(el);const floating=document.createElement('div');floating.className='float-emoji';floating.textContent=emoji;floating.style.left=(20+Math.random()*65)+'%';floating.style.setProperty('--drift',(Math.random()*100-50)+'px');floatLayer.appendChild(floating);setTimeout(()=>floating.remove(),3300);while(feed.children.length>8)feed.lastElementChild.remove()}
-function attachAudio(track,pub){const el=track.attach();el.autoplay=true;el.dataset.sid=pub.trackSid;el.style.display='none';document.body.appendChild(el);audioEls.set(pub.trackSid,el)}
-function detachAudio(track){track.detach().forEach(el=>el.remove())}
-async function connectPalmira(){showError('');liveBtn.disabled=true;liveBtn.textContent='● CONNECTING';try{const r=await fetch('/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});if(!r.ok)throw new Error((await r.json()).error||'Falha ao obter token');const data=await r.json();room=new Room();
-room.on(RoomEvent.TrackSubscribed,(track,pub)=>{if(track.kind===Track.Kind.Audio)attachAudio(track,pub)});
-room.on(RoomEvent.TrackUnsubscribed,(track)=>detachAudio(track));room.on(RoomEvent.ParticipantAttributesChanged,(attrs,participant)=>{if(participant===room.remoteParticipants.values().next().value||participant.identity){const s=attrs['lk.agent.state'];if(s)setState(s);const e=attrs['lk.agent.emotion'];if(e)setEmotion(e)}});
-room.on(RoomEvent.ParticipantConnected,(participant)=>{const s=participant.attributes?.['lk.agent.state'];if(s)setState(s);const e=participant.attributes?.['lk.agent.emotion'];if(e)setEmotion(e)});
-room.on(RoomEvent.Disconnected,()=>disconnectUI());
-await room.connect(data.server_url,data.participant_token);await room.localParticipant.setMicrophoneEnabled(true);app.classList.add('live');statusText.textContent='LIVE';statusText.classList.add('connected');micBtn.disabled=false;micBtn.classList.add('active');liveBtn.textContent='■ DISCONNECT';
+await room.connect(data.server_url,data.participant_token);
+await room.localParticipant.setMicrophoneEnabled(true);
+app.classList.add('live');
+statusText.textContent='LIVE';
+statusText.classList.add('connected');
+micBtn.disabled=false;
+micBtn.classList.add('active');
+liveBtn.textContent='■ DISCONNECT';
 for(const p of room.remoteParticipants.values()){const s=p.attributes?.['lk.agent.state'];if(s)setState(s);const e=p.attributes?.['lk.agent.emotion'];if(e)setEmotion(e)}
 }catch(e){showError(e.message||String(e));liveBtn.disabled=false;liveBtn.textContent='● CONNECT PALMIRA'}}
+
 async function disconnectUI(){for(const el of audioEls.values())el.remove();audioEls.clear();app.classList.remove('live');statusText.textContent='OFFLINE';statusText.classList.remove('connected');setState('idle');micBtn.disabled=true;micBtn.classList.remove('active');liveBtn.disabled=false;liveBtn.textContent='● CONNECT PALMIRA'}
+
 async function disconnectPalmira(){if(room){await room.disconnect();room=null}else disconnectUI()}
+
 liveBtn.onclick=()=>room?disconnectPalmira():connectPalmira();
+
 micBtn.onclick=async()=>{if(!room)return;const enabled=!micBtn.classList.contains('active');await room.localParticipant.setMicrophoneEnabled(enabled);micBtn.classList.toggle('active',enabled)};
+
 document.getElementById('demoBtn').onclick=()=>{if(!app.classList.contains('live'))return;const list=[{emoji:'❤️',text:'Palmira está incrível!'},{emoji:'😂',text:'Essa resposta foi boa 😂'},{emoji:'🔥',text:'Que live!'},{emoji:'😍',text:'Amei!'},{emoji:'👏',text:'Muito bom!'}];const item=list[Math.floor(Math.random()*list.length)];addReaction(item);setEmotion(item.emoji==='❤️'||item.emoji==='😍'?'love':item.emoji==='😂'?'laugh':'happy')};
-for(let i=0;i<24;i++){const bar=document.createElement('i');bar.style.height=(5+Math.random()*22)+'px';document.getElementById('eq').appendChild(bar)}setState('idle');setEmotion('neutral');
+
+for(let i=0;i<24;i++){const bar=document.createElement('i');bar.style.height=(5+Math.random()*22)+'px';document.getElementById('eq').appendChild(bar)}
+
+setState('idle');
+setEmotion('neutral');
 </script>
-</body></html>
-}catch(e){showError(e.message||String(e));liveBtn.disabled=false;liveBtn.textContent='● CONNECT PALMIRA'}}
-async function disconnectUI(){for(const el of audioEls.values())el.remove();audioEls.clear();app.classList.remove('live');statusText.textContent='OFFLINE';statusText.classList.remove('connected');setState('idle');micBtn.disabled=true;micBtn.classList.remove('active');liveBtn.disabled=false;liveBtn.textContent='● CONNECT PALMIRA'}
-async function disconnectPalmira(){if(room){await room.disconnect();room=null}else disconnectUI()}
-liveBtn.onclick=()=>room?disconnectPalmira():connectPalmira();
-micBtn.onclick=async()=>{if(!room)return;const enabled=!micBtn.classList.contains('active');await room.localParticipant.setMicrophoneEnabled(enabled);micBtn.classList.toggle('active',enabled)};
-document.getElementById('demoBtn').onclick=()=>{if(!app.classList.contains('live'))return;const list=[{emoji:'❤️',text:'Palmira está incrível!'},{emoji:'😂',text:'Essa resposta foi boa 😂'},{emoji:'🔥',text:'Que live!'},{emoji:'😍',text:'Amei!'},{emoji:'👏',text:'Muito bom!'}];const item=list[Math.floor(Math.random()*list.length)];addReaction(item);setEmotion(item.emoji==='❤️'||item.emoji==='😍'?'love':item.emoji==='😂'?'laugh':'happy')};
-for(let i=0;i<24;i++){const bar=document.createElement('i');bar.style.height=(5+Math.random()*22)+'px';document.getElementById('eq').appendChild(bar)}setState('idle');setEmotion('neutral');
-</script>
-</body></html>
+</body>
+</html>
