@@ -463,11 +463,11 @@ server = AgentServer()
 @server.rtc_session(agent_name="Palmira")
 async def entrypoint(ctx: JobContext):
     session = AgentSession(
-        # Google Gemini STT
-        stt=google.STT(
-            model="gemini-2.5-flash",
-        ),
-
+        # Gemini Transcribe Live — STT em tempo real
+stt=inference.STT(
+    model="google/gemini-3.5-transcribe-live",
+    language="pt",
+),
         # Google Gemini LLM
         llm=google.LLM(
             model="gemini-3-flash-preview",
