@@ -409,13 +409,34 @@ Se não souber alguma coisa, diga que não sabe. Nunca invente uma informação 
 
 A conversa deve parecer espontânea e natural, sem tentar demonstrar que é uma IA.""",
             tools=[
-                EndCallTool(
-                    extra_description="""""",
-                    end_instructions="""Thank the user for their time and say goodbye.""",
-                    delete_room=False,
-                ),
-            ],
+    EndCallTool(
+        extra_description="""""",
+        end_instructions="""Thank the user for their time and say goodbye.""",
+        delete_room=False,
+    ),
+],
         )
+
+    @function_tool
+    async def set_emotion(self, context: RunContext, emotion: str):
+        emotions = {
+            "neutral": "neutral",
+            "happy": "happy",
+            "love": "love",
+            "laugh": "laugh",
+            "surprised": "surprised",
+            "sad": "sad",
+        }
+
+        emotion = emotion.lower().strip()
+
+        if emotion not in emotions:
+            emotion = "neutral"
+
+        await self.session.room.local_participant.set_attributes({
+            "lk.agent.emotion": emotions[emotion]
+        })
+
     async def on_enter(self):
         await self.session.generate_reply(
             instructions="""Oi... eu sou a Palmira. Pode falar. 😌""",
