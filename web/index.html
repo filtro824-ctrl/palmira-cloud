@@ -27,7 +27,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.25;ba
 <script>
 const { Room, RoomEvent, Track } = window.LivekitClient;
 const app=document.getElementById('app'), coreWrap=document.getElementById('coreWrap'), emotion=document.getElementById('emotion'), stateText=document.getElementById('stateText'), voiceText=document.getElementById('voiceText'), reactionText=document.getElementById('reactionText'), feed=document.getElementById('feed'), floatLayer=document.getElementById('floatLayer'), liveBtn=document.getElementById('liveBtn'), micBtn=document.getElementById('micBtn'), errorEl=document.getElementById('error'), statusText=document.getElementById('statusText');
-const emotions={neutral:'◉',happy:'😊',love:'🥰',laugh:'😂',surprised:'😮',sad:'😔'};
+const reactionEmojis={neutral:'😐',happy:'😄',love:'❤️',laugh:'😂',surprised:'😮',sad:'😢'};
 const states={initializing:'THINKING',idle:'IDLE',listening:'LISTENING',thinking:'THINKING',speaking:'SPEAKING'};
 let room=null, audioEls=new Map();
 function showError(msg){errorEl.textContent=msg||''}
