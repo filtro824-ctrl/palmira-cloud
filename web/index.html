@@ -32,7 +32,7 @@ const states={initializing:'THINKING',idle:'IDLE',listening:'LISTENING',thinking
 let room=null, audioEls=new Map();
 function showError(msg){errorEl.textContent=msg||''}
 function setState(state){state=states[state]?state:'idle';coreWrap.classList.remove('listening','speaking');if(state==='listening')coreWrap.classList.add('listening');if(state==='speaking')coreWrap.classList.add('speaking');stateText.textContent=states[state];voiceText.textContent=state==='speaking'?'SPEAKING':state==='listening'?'LISTENING':state==='thinking'?'PROCESSING':'READY'}
-function setEmotion(type){type=emotions[type]?type:'neutral';emotion.textContent=emotions[type];reactionText.textContent=type.toUpperCase()}
+function setEmotion(type){type=reactionEmojis[type]?type:'neutral';emotion.textContent=reactionEmojis[type];reactionText.textContent=type.toUpperCase()}
 function addReaction(data){if(!app.classList.contains('live'))return;const emoji=data?.emoji||'✨',text=data?.text||'Reação';const el=document.createElement('div');el.className='comment';el.innerHTML=`<span>${emoji}</span> ${text}<small>agora</small>`;feed.prepend(el);const floating=document.createElement('div');floating.className='float-emoji';floating.textContent=emoji;floating.style.left=(20+Math.random()*65)+'%';floating.style.setProperty('--drift',(Math.random()*100-50)+'px');floatLayer.appendChild(floating);setTimeout(()=>floating.remove(),3300);while(feed.children.length>8)feed.lastElementChild.remove()}
 function attachAudio(track,pub){const el=track.attach();el.autoplay=true;el.dataset.sid=pub.trackSid;el.style.display='none';document.body.appendChild(el);audioEls.set(pub.trackSid,el)}
 function detachAudio(track){track.detach().forEach(el=>el.remove())}
